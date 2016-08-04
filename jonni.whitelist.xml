@@ -1,18 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <whitelist_config>
-	<database>XML</database> 	<!-- the data source you want to use for whitelisted players | available: XML, MySQL (xAseco db) -->
-	<use_cache>false</use_cache>		<!-- use cache if the server is visited well (so the script doesn't query the database on player connect which reduces the busy time of xAseco A MINI LITTLE BIT) | available: true, false -->
+
+	<!-- the data source you want to use for whitelisted players | available: XML (this file), MySQL (xAseco db, autocreates new table "whitelist") -->
+	<database>MySQL</database> 	
 	
-	<chat_message>{#server}>> {#admin}Player {#highlite}{name}$z$s{#admin} is not whitelisted and will be {#highlite}{punished}$z now!</chat_message>	<!-- should we show a message to all players? | replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense)  | available: TEXT, false (no message) -->
+	<!-- enable caching the whitelisted players in RAM? -->
+	<!-- available: true, false -->
+	<!-- recommendation: false, but if you have a high frequented server, use true 
+		 (but please note that caching combined with XML reloads the config on every player connect - this isn't a good idea unless you modify the config from another file) -->
+	<use_cache>true</use_cache>		
 	
-	<punishment_method>blacklist</punishment_method>		<!-- what should we do with non-whitelisted players? | available: forcespec (forces the player to spectator), kick, blacklist, ban (not recommended, IP ban) -->
-	<punishment_message>$oYou're not whitelisted, that's why you will be {punished} now!</punishment_message>	<!-- what should we say to non-whitelisted players? | replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense) | available: TEXT, false (no message) -->
+	<!-- should we show a message to all players and if yes, which content? -->
+	<!-- replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense) -->
+	<!-- available: TEXT, false (no message) -->
+	<chat_message>{#server}>> {#admin}Player {#highlite}{name}$z$s{#admin} is not whitelisted and will be {#highlite}{punished}$z now!</chat_message>
 	
+	<!-- what should we do with non-whitelisted players? | available: forcespec (forces the player to spectator), kick, blacklist, ban (not recommended, IP ban) -->
+	<punishment_method>forcespec</punishment_method>
+	<!-- what should we say to non-whitelisted players? | replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense) | available: TEXT, false (no message) -->
+	<!-- at the moment, no message is displayed unless you use forcespec, because a kick shows you the disconnect message with a black background directly -->
+	<punishment_message>$oYou're not whitelisted, that's why you will be {punished} now!</punishment_message>	
+	
+	<!-- if you uese XML as database, create a new <player>-node with the login of the player -->
 	<whitelist>
-		<player>frstest1</player>
+		<player>jonniboy</player>
 	</whitelist>
 	
+	<!-- theoretically you just can add them to the whitelist, but there are ignored players - they can't be edited without editing this file -->
 	<ignored_players>
-		<player>jonniboy</player>
+		<player></player>
 	</ignored_players>
+	
 </whitelist_config>
