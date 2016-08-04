@@ -57,7 +57,63 @@ function jwl_event_onPlayerConnect($aseco, $player) {
 	if(!jwl_checkPlayer($player->login)) {
 		
 		jwl_console("Player '" . $player->login . "' failed the whitelist check. Punishing...");
-		$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['punishment_message']), $player->login);
+		
+		$method = $jwl_config['punishment_method'];
+		$method_past = $jwl_config['punishment_method'] . 'ed';
+		
+		// small language fixes
+		switch($method) {
+			
+			case 'forcespec':
+				$method = 'move to spectator';
+				$method_past = 'moved to spectator';
+			break;
+			
+			case 'ban':
+				$method_past = 'banned';
+			break;
+			
+			default:
+				// nothing
+			break;
+		}
+		
+		$message = str_replace(array('{name}', '{login}', '{punish}', '{punished}'), array($player->nickname, $player->login, $method, $method_past), $jwl_config['punishment_message']);
+		$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($message), $player->login);
+		
+		switch($jwl_config['punishment_method']) {
+			
+			case 'forcespec':
+				jwl_forceSpectator($player);
+			break;
+			
+			case 'kick':
+				jwl_kickPlayer($player);
+			break;
+			
+			case 'blacklist':
+				jwl_blacklistPlayer($player);
+			break;
+			
+			case 'ban':
+				jwl_banPlayer($player);
+			break;
+			
+			default:
+				jwl_kickPlayer($player->login);
+			break;
+			
+		}
+		
+		if($jwl_config['chat_message'] != 'false') {
+
+			$message = str_replace(array('{name}', '{login}', '{punish}', '{punished}'), array($player->nickname, $player->login, $method, $method_past), $jwl_config['chat_message']);
+			$aseco->client->query('ChatSendServerMessage', $aseco->formatColors($message));
+
+		}
+		
+		
+		#jwl_console("Punishment finished. Exiting whitelist check.");
 		
 	} else {
 		
@@ -77,7 +133,8 @@ function jwl_verifyDatabaseStructure() {
 	
 	$sql = 
 	'CREATE TABLE IF NOT EXISTS `whitelist`  (
-		`login` text COLLATE utf8_unicode_ci NOT NULL
+		`login` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+		UNIQUE KEY `login` (`login`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;';
 	
 	mysql_query($sql) or die(mysql_error());
@@ -118,6 +175,81 @@ function jwl_refreshCache() {
 	
 	jwl_console('>> Refreshed cache!');
 	print_r($jwl_cache['whitelist']);
+	
+}
+
+function jwl_forceSpectator($target) {
+	global $jwl_aseco;
+	
+	if (!$jwl_aseco->isSpectator($target)) {
+		
+		// force player into free spectator
+		$rtn = $jwl_aseco->client->query('ForceSpectator', $target->login, 1);
+		
+		if (!$rtn) {
+			
+			trigger_error('[' . $aseco->client->getErrorCode() . '] ForceSpectator - ' . $aseco->client->getErrorMessage(), E_USER_WARNING);
+		
+		} else {
+			
+			// allow spectator to switch back to player
+			$rtn = $jwl_aseco->client->query('ForceSpectator', $target->login, 0);
+			
+			// force free camera mode on spectator
+			$jwl_aseco->client->addCall('ForceSpectatorTarget', array($target->login, '', 2));
+			
+			// free up player slot
+			$jwl_aseco->client->addCall('SpectatorReleasePlayerSlot', array($target->login));
+		
+			jwl_console(">> Forced player '" . $target->login . "' to spectator mode!");
+			
+		}
+	
+	} else {
+		
+		jwl_console(">> Player '" . $target->login . "' is already a spectator!");
+	
+	}
+	
+}
+
+function jwl_kickPlayer($player) {
+	global $jwl_aseco;
+
+	$jwl_aseco->client->query('Kick', $player->login);
+	jwl_console(">> Kicked player '" . $player->login . "'!");
+	
+}
+
+function jwl_blacklistPlayer($player) {
+	global $jwl_aseco;
+	
+	// blacklist the player and then kick him
+	$jwl_aseco->client->query('BlackList', $player->login);
+	$jwl_aseco->client->query('Kick', $player->login);
+
+	// update blacklist file
+	$filename = $jwl_aseco->settings['blacklist_file'];
+	$rtn = $jwl_aseco->client->query('SaveBlackList', $filename);
+	if (!$rtn) {
+		trigger_error('[' . $jwl_aseco->client->getErrorCode() . '] SaveBlackList (kick) - ' . $jwl_aseco->client->getErrorMessage(), E_USER_WARNING);
+	}
+	
+	jwl_console(">> Blacklisted & kicked player '" . $player->login . "'!");
+
+}
+
+function jwl_banPlayer($player) {	
+	global $jwl_aseco;
+	
+	// update banned IPs file
+	$jwl_aseco->bannedips[] = $player->ip;
+	$jwl_aseco->writeIPs();
+
+	// ban the player and also kick him
+	$jwl_aseco->client->query('Ban', $player->login);
+	
+	jwl_console(">> Banned & kicked player '" . $player->login . "'!");
 	
 }
 

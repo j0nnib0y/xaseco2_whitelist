@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <whitelist_config>
-	<database>MySQL</database> 	<!-- the data source you want to use for whitelisted players | available: XML, MySQL (xAseco db) -->
+	<database>XML</database> 	<!-- the data source you want to use for whitelisted players | available: XML, MySQL (xAseco db) -->
 	<use_cache>false</use_cache>		<!-- use cache if the server is visited well (so the script doesn't query the database on player connect which reduces the busy time of xAseco A MINI LITTLE BIT) | available: true, false -->
 	
-	<punishment_method>kick</punishment_method>		<!-- what should we do with non-whitelisted players? | available: kick, ban -->
-	<punishment_message>$oHey sry you not whitelisted bro!</punishment_message>	<!-- what should we say to non-whitelisted players? | available: TEXT, false (no message) -->
+	<chat_message>{#server}>> {#admin}Player {#highlite}{name}$z$s{#admin} is not whitelisted and will be {#highlite}{punished}$z now!</chat_message>	<!-- should we show a message to all players? | replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense)  | available: TEXT, false (no message) -->
+	
+	<punishment_method>blacklist</punishment_method>		<!-- what should we do with non-whitelisted players? | available: forcespec (forces the player to spectator), kick, blacklist, ban (not recommended, IP ban) -->
+	<punishment_message>$oYou're not whitelisted, that's why you will be {punished} now!</punishment_message>	<!-- what should we say to non-whitelisted players? | replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense) | available: TEXT, false (no message) -->
 	
 	<whitelist>
 		<player>frstest1</player>
