@@ -161,7 +161,7 @@ function jwl_refreshCache() {
 		case 'MySQL':
 		
 			$jwl_cache['whitelist'] = array_values(jwl_query_getWhitelistEntries());
-			
+			print_r(jwl_query_getWhitelistEntries());
 		break;
 		
 		case 'XML':
@@ -174,7 +174,7 @@ function jwl_refreshCache() {
 	}
 	
 	jwl_console('>> Refreshed cache!');
-	print_r($jwl_cache['whitelist']);
+	#print_r($jwl_cache['whitelist']);
 	
 }
 
@@ -284,24 +284,61 @@ function jwl_checkPlayer($login) {
 		
 	} else {
 		
-		if(jwl_query_countWhitelistEntries($login) == 0) {
+		switch($jwl_config['database']) {
 			
-			if(in_array($login, $jwl_config['ignored_players'])) {
+			case 'MySQL':
+			
+				if(jwl_query_countWhitelistEntries($login) == 0) {
+					
+					if(in_array($login, $jwl_config['ignored_players'])) {
+						
+						jwl_console(">> Player isn't in whitelist, but is an ignored player! Pfeeewww...");
+						return true;
+					
+					} else {
+						
+						jwl_console(">> OMG, player isn't in whitelist and ignored players list! Punish him!");
+						return false;
+						
+					}
+					
+				} else {
+					
+					jwl_console('>> Player is in whitelist! No need to worry...');
+					return true;
+					
+				}
 				
-				jwl_console(">> Player isn't in whitelist, but is an ignored player! Pfeeewww...");
-				return true;
+			break;
 			
-			} else {
+			case 'XML':
+			
+				jwl_reloadConfig();
 				
-				jwl_console(">> OMG, player isn't in whitelist and ignored players list! Punish him!");
-				return false;
-				
-			}
+				// in whitelist?
+				if(in_array($login, $jwl_config['whitelist'])) {
+					
+					jwl_console('>> Player is in whitelist! No need to worry...');
+					return true;
+					
+				} else {
+					
+					// in ignored players?
+					if(in_array($login, $jwl_config['ignored_players'])) {
+						
+						jwl_console(">> Player isn't in whitelist, but is an ignored player! Pfeeewww...");
+						return true;
+						
+					} else {
+						
+						jwl_console(">> OMG, player isn't in whitelist and ignored players list! Punish him!");
+						return false;
+						
+					}
+					
+				}
 			
-		} else {
-			
-			jwl_console('>> Player is in whitelist! No need to worry...');
-			return true;
+			break;
 			
 		}
 	
@@ -341,8 +378,8 @@ function jwl_query_getWhitelistEntries($login = false) {
 	$result = mysql_query($sql);
 	
 	$array = array();
-	while($row = mysql_fetch_assoc($result)){
-		$array[] = $row;
+	while($row = mysql_fetch_row($result)){
+		$array[] = $row[0];
 	}
 
 	return $array;
