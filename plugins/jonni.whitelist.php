@@ -21,8 +21,13 @@ function jwl_event_onSync($aseco) {
 }
 
 function jwl_event_onPlayerConnect($aseco, $player) {
+	global $jwl_config;
 	
-	// whitelist check & kick/ban or not
+	if(!jwl_checkPlayer($player->login)) {
+		
+		$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['punishment_message']), $player->login);
+		
+	}
 	
 }
 
@@ -59,6 +64,73 @@ function jwl_refreshCache() {
 		break;
 	
 	}
+	
+}
+
+function jwl_checkPlayer($login) {
+	global $jwl_cache;
+	global $jwl_config;
+	
+	if($jwl_config['use_cache'] == 'true') {
+		
+		// in whitelist?
+		if(in_array($login, $jwl_cache['whitelist'])) {
+			
+			// in ignored players?
+			if(in_array($login, $jwl_config['ignored_players'])) {
+				
+				return false;
+				
+			} else {
+				
+				return true;
+				
+			}
+			
+		} else {
+			
+			return false;
+			
+		}
+		
+	} else {
+		
+		if(jwl_query_countWhitelistEntries($login) == 0) {
+			
+			if(in_array($login, $jwl_config['ignored_players'])) {
+				
+				return true;
+			
+			} else {
+				
+				return false;
+				
+			}
+			
+		} else {
+			
+			return true;
+			
+		}
+	
+	}
+	
+}
+
+function jwl_query_countWhitelistEntries($login = false) {
+	
+	if($login) {
+		
+		$sql = 'SELECT * FROM whitelist WHERE login = ' . mysql_escape_string($login) . ';';
+		
+	} else {
+		
+		$sql = 'SELECT * FROM whitelist;';
+	
+	}
+	
+	$result = mysql_query($sql);
+	return mysql_num_rows($result);	
 	
 }
 
