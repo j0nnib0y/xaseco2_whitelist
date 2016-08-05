@@ -169,11 +169,29 @@ function chat_whitelist($aseco, $command) {
 			
 				if(jonni_checkPermission($aseco, $jwl_config['permissions'], $command['author'], 'remove')) {
 					
+					if(isset($params[1])) {
+						
+						if(jwl_removePlayerFromWhitelist($params[1])) {
+						
+							$message = str_replace(array('{login}'), array($params[1]), $jwl_config['messages']['success_remove']);
+							$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($message), $command['author']->login);
+						
+						} else {
+							
+							$message = str_replace(array('{login}'), array($params[1]), $jwl_config['messages']['fail_remove']);
+							$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($message), $command['author']->login);
+							
+						}
 					
+					} else {
+						
+						$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['missing_parameters'] . 'player login'), $command['author']->login);
+						
+					}
 					
 				} else {
 					
-					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['announcement']), $command['author']->login);
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['no_permission']), $command['author']->login);
 					return;
 					
 				}
@@ -237,8 +255,20 @@ function jwl_refreshCache() {
 		break;
 		
 		case 'XML':
-		
-			$jwl_cache['whitelist'] = $jwl_config['whitelist']['player'];
+			
+			if(isset($jwl_config['whitelist']['player'])) {
+
+				if(is_array($jwl_config['whitelist']['player'])) {
+					
+					$jwl_cache['whitelist'] = $jwl_config['whitelist']['player'];
+					
+				} else {
+					
+					$jwl_cache['whitelist'] = array($jwl_config['whitelist']['player']);
+					
+				}
+				
+			}
 		
 		break;
 	
@@ -327,12 +357,11 @@ function jwl_checkPlayer($login) {
 	global $jwl_cache;
 	global $jwl_config;
 	
-	#print_r($jwl_cache);
-	
 	if($jwl_config['use_cache'] == 'true') {
 		
 		// in whitelist?
-		if(in_array($login, $jwl_cache['whitelist'])) {
+		// I've very no clue why this thing is giving a warning message without @ and without any player defined in the XML file, I mean.. I initialize the array just as it have to be and I'm using strict mode for preventing array() == false...
+		if(@in_array($login, $jwl_cache['whitelist'], true)) {
 			
 			jwl_console('>> Player is in whitelist! No need to worry...');
 			return true;
@@ -340,7 +369,7 @@ function jwl_checkPlayer($login) {
 		} else {
 			
 			// in ignored players?
-			if(in_array($login, $jwl_config['ignored_players'])) {
+			if(in_array($login, $jwl_config['ignored_players'], true)) {
 				
 				jwl_console(">> Player isn't in whitelist, but is an ignored player! Pfeeewww...");
 				return true;
@@ -362,7 +391,7 @@ function jwl_checkPlayer($login) {
 			
 				if(jwl_query_countWhitelistEntries($login) == 0) {
 					
-					if(in_array($login, $jwl_config['ignored_players'])) {
+					if(in_array($login, $jwl_config['ignored_players'], true)) {
 						
 						jwl_console(">> Player isn't in whitelist, but is an ignored player! Pfeeewww...");
 						return true;
@@ -388,7 +417,7 @@ function jwl_checkPlayer($login) {
 				jwl_reloadConfig();
 				
 				// in whitelist?
-				if(in_array($login, $jwl_config['whitelist'])) {
+				if(in_array($login, $jwl_config['whitelist'], true)) {
 					
 					jwl_console('>> Player is in whitelist! No need to worry...');
 					return true;
@@ -396,7 +425,7 @@ function jwl_checkPlayer($login) {
 				} else {
 					
 					// in ignored players?
-					if(in_array($login, $jwl_config['ignored_players'])) {
+					if(in_array($login, $jwl_config['ignored_players'], true)) {
 						
 						jwl_console(">> Player isn't in whitelist, but is an ignored player! Pfeeewww...");
 						return true;
@@ -467,6 +496,14 @@ function jwl_query_addWhitelistEntry($login) {
 
 }
 
+function jwl_query_removeWhitelistEntry($login) {
+	
+	$sql = "DELETE FROM whitelist WHERE login = '" . $login . "';";
+	
+	return mysql_query($sql);
+
+}
+
 function jwl_whitelistPlayer($login) {
 	global $jwl_config;
 	global $jwl_cache;
@@ -474,44 +511,122 @@ function jwl_whitelistPlayer($login) {
 	switch($jwl_config['database']) {
 		
 		case 'MySQL':
-			if(jwl_query_addWhitelistEntry($login)) {
-				return true;
-			} else {
+		
+			if(!jwl_query_addWhitelistEntry($login)) {
+				
 				return false;
+			
 			}
+		
 		break;
 		
 		case 'XML':
+			
 			$file = simplexml_load_file('jonni.whitelist.xml');
 			
 			if(!in_array($login, (array) $file->whitelist->player)) {
+				
 				$file->whitelist->addChild('player', $login);
+			
 			} else {
+				
 				return false;
+			
 			}
 			
 			$dom = dom_import_simplexml($file)->ownerDocument;
 			$dom->formatOutput = true;
-			if(file_put_contents('jonni.whitelist.xml', $dom->saveXML($dom, LIBXML_NOEMPTYTAG))) {
-				return true;
-			} else {
+			
+			if(!file_put_contents('jonni.whitelist.xml', $dom->saveXML($dom, LIBXML_NOEMPTYTAG))) {
+				
 				return false;
+			
 			}
+		
 		break;
 		
 	}
 	
 	if($jwl_config['use_cache'] == 'true') {
 		
-		
+		$jwl_cache['whitelist'] = $login;
 		
 	}
+	
+	return true;
 	
 }
 
 function jwl_removePlayerFromWhitelist($login) {
+	global $jwl_config;
+	global $jwl_cache;
 	
+	switch($jwl_config['database']) {
+		
+		case 'MySQL':
+		
+			if(!jwl_query_removeWhitelistEntry($login)) {
+				
+				return false;
+			
+			}
+		
+		break;
+		
+		case 'XML':
+			
+			$file = simplexml_load_file('jonni.whitelist.xml');
+			$dom = dom_import_simplexml($file)->ownerDocument;
+			$dom->formatOutput = true;
+			
+			if(in_array($login, (array) $file->whitelist->player)) {
+				
+				$x = false;
+				
+				foreach($dom->getElementsByTagName('player') as $player) {
+					
+					if($player->nodeValue == $login) {
+						
+						$player->parentNode->removeChild($player);
+						$x = true;
+						
+					}
+				
+				}
+				
+				if(!$x) {
+					
+					return false;
+					
+				}
+			
+			} else {
+				
+				return false;
+			
+			}
+			
+			if(!file_put_contents('jonni.whitelist.xml', $dom->saveXML($dom, LIBXML_NOEMPTYTAG))) {
+				
+				return false;
+			
+			}
+		
+		break;
+		
+	}
 	
+	if($jwl_config['use_cache'] == 'true') {
+		
+		if(($key = array_search($login, $jwl_cache['whitelist'])) !== false) {
+			
+			unset($jwl_cache['whitelist'][$key]);
+
+		}
+		
+	}
+	
+	return true;
 	
 }
 

@@ -2,7 +2,7 @@
 <whitelist_config>
 
 	<!-- the data source you want to use for whitelisted players | available: XML (this file), MySQL (xAseco db, autocreates new table "whitelist") -->
-	<database>XML</database> 	
+	<database>MySQL</database>
 	
 	<!-- enable caching the whitelisted players in RAM? -->
 	<!-- available: 		true, false -->
@@ -14,18 +14,22 @@
 		<!-- should we show a message to all players and if yes, which content? -->
 		<!-- replaced shortcuts: 	{name}, {login}, {punish}, {punished} (past tense) -->
 		<!-- available: 			TEXT, false (no message) -->
-		<announcement>{#server}>> {#admin}Player {#highlite}{name}$z$s{#admin} is not whitelisted and will be {#highlite}{punished}$z now!</announcement>
+		<announcement>{#server}&gt;&gt; {#admin}Player {#highlite}{name}$z$s{#admin} is not whitelisted and will be {#highlite}{punished}$z now!</announcement>
 		
 		<!-- you may not need to edit the following lines -->
-		<no_permission>$oYou don't have the permission to do that!</no_permission>
-		<missing_parameters>$oMissing parameters: </missing_parameters>
+		<no_permission>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFYou don't have the permission to do that!</no_permission>
+		<missing_parameters>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFMissing parameters: $7D0</missing_parameters>
+		<success_add>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFSuccessfully added player $7D0{login}$FFF!</success_add>
+		<success_remove>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFSuccessfully removed player $7D0{login}$FFF from whitelist!</success_remove>
+		<fail_add>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFWhitelisting player $7D0{login} $FFFfailed: $7D0duplicate entry$FFF!</fail_add>
+		<fail_remove>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFRemoving player $7D0{login}$FFF from whitelist failed: $7D0no entry found$FFF!</fail_remove>
 	</messages>
 	
 	<!-- what should we do with non-whitelisted players? | available: forcespec (forces the player to spectator), kick, blacklist, ban (not recommended, IP ban) -->
 	<punishment_method>forcespec</punishment_method>
 	<!-- what should we say to non-whitelisted players? | replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense) | available: TEXT, false (no message) -->
 	<!-- at the moment, no message is displayed unless you use forcespec, because a kick shows you the disconnect message with a black background directly -->
-	<punishment_message>$oYou're not whitelisted, that's why you will be {punished} now!</punishment_message>	
+	<punishment_message>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFYou're not whitelisted, that's why you will be $7D0{punished} $FFFnow!</punishment_message>	
 	
 	<!-- permission system where you can say to whom it's allowed to do something -->
 	<!-- note: 		of course MasterAdmins and Admins can do something if you tick Operator, it's just the first who can do that -->
