@@ -21,6 +21,7 @@ It can be useful for tournaments where people may spread the password of the ser
 ##Planned
 - GUI list with buttons and search field
 - little documentation here on Github about the config file options
+- replacing the simplexml parser with the native parser included in xAseco2
 
 Do you've ideas? Give them to me and I will do my best if I've time! :-)
 
