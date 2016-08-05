@@ -39,6 +39,7 @@
  */
 
 Aseco::registerEvent('onStartup', 'jwl_event_onStartup');
+Aseco::registerEvent('onSync', 'jwl_event_onSync');
 Aseco::registerEvent('onPlayerConnect2', 'jwl_event_onPlayerConnect');
 
 // chat commands
