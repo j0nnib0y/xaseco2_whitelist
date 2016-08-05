@@ -22,6 +22,8 @@
 		<missing_parameters>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFMissing parameters: $7D0</missing_parameters>
 		<success_add>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFSuccessfully added player $7D0{login}$FFF!</success_add>
 		<success_remove>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFSuccessfully removed player $7D0{login}$FFF from whitelist!</success_remove>
+		<success_reload>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFSuccessfully reloaded config!</success_reload>
+		<success_refresh>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFSuccessfully refreshed cache!</success_refresh>
 		<fail_add>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFWhitelisting player $7D0{login} $FFFfailed: $7D0duplicate entry$FFF!</fail_add>
 		<fail_remove>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFRemoving player $7D0{login}$FFF from whitelist failed: $7D0no entry found$FFF!</fail_remove>
 		<list_start>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFListing whitelisted users...</list_start>
@@ -42,6 +44,8 @@
 		<add>Operator</add>
 		<remove>Operator</remove>
 		<list>User</list>
+		<reload_config>Admin</reload_config>
+		<refresh_cache>Admin</refresh_cache>
 	</permissions>
 	
 	<!-- if you use XML as database, create a new <player>-node with the login of the player -->

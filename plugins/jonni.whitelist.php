@@ -251,12 +251,45 @@ function chat_whitelist($aseco, $command) {
 				
 				} else {
 					
-					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['announcement']), $command['author']->login);	
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['no_permission']), $command['author']->login);	
 					return;
 					
 				}
 			
 			break;
+			
+			case 'reload_config':
+			
+				if(jonni_checkPermission($aseco, $jwl_config['permissions'], $command['author'], 'reload_config')) {
+					
+					jwl_reloadConfig();
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['success_reload']), $command['author']->login);
+				
+				} else {
+					
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['no_permission']), $command['author']->login);	
+					return;
+					
+				}
+			
+			break;
+			
+			case 'refresh_cache':
+			
+				if(jonni_checkPermission($aseco, $jwl_config['permissions'], $command['author'], 'refresh_cache')) {
+					
+					jwl_refreshCache();
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['success_refresh']), $command['author']->login);
+				
+				} else {
+					
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['no_permission']), $command['author']->login);	
+					return;
+					
+				}
+			
+			break;
+			
 		}
 	
 	}
