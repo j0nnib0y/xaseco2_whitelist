@@ -87,6 +87,17 @@ function jwl_event_onStartup($aseco) {
 	
 }
 
+function jwl_onSync() {
+	
+	// Register this to the global version pool (for up-to-date checks)
+	$aseco->plugin_versions[] = array(
+		'plugin'	=> 'jonni.whitelist.php',
+		'author'	=> 'Jonniboy',
+		'version'	=> '0.1'
+	);
+	
+}
+
 function jwl_event_onPlayerConnect($aseco, $player) {
 	global $jwl_config;
 	
