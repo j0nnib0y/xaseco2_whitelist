@@ -6,9 +6,10 @@
 	
 	<!-- enable caching the whitelisted players in RAM? -->
 	<!-- available: 		true, false -->
-	<!-- recommendation: 	false, but if you have a high frequented server, use true 
+	<!-- recommendation: 	if you use MySQL	-> false (one db query on every player connect), but if you have a high frequented server, use true (then there is one db query at Xaseco startup)
+							if you use XML		-> true (config file will be read once on xAseco startup), but if you modify the xml file from the outside, use false (the config will be refreshed on every player connect)
 							(but please note that caching combined with XML reloads the config on every player connect - this isn't a good idea unless you modify the config from another file) -->
-	<use_cache>true</use_cache>		
+	<use_cache>false</use_cache>		
 	
 	<messages>
 		<!-- should we show a message to all players and if yes, which content? -->
@@ -23,12 +24,15 @@
 		<success_remove>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFSuccessfully removed player $7D0{login}$FFF from whitelist!</success_remove>
 		<fail_add>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFWhitelisting player $7D0{login} $FFFfailed: $7D0duplicate entry$FFF!</fail_add>
 		<fail_remove>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFRemoving player $7D0{login}$FFF from whitelist failed: $7D0no entry found$FFF!</fail_remove>
+		<list_start>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFListing whitelisted users...</list_start>
+		<list_entry>$o$7D0                         - $FFF{login}</list_entry>
+		<list_end>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFFinished listing!</list_end>
 	</messages>
 	
 	<!-- what should we do with non-whitelisted players? | available: forcespec (forces the player to spectator), kick, blacklist, ban (not recommended, IP ban) -->
-	<punishment_method>forcespec</punishment_method>
+	<punishment_method>kick</punishment_method>
 	<!-- what should we say to non-whitelisted players? | replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense) | available: TEXT, false (no message) -->
-	<!-- at the moment, no message is displayed unless you use forcespec, because a kick shows you the disconnect message with a black background directly -->
+	<!-- at the moment, no message is displayed unless you use forcespec, because a kick shows you the disconnect message only without this message with a black background directly -->
 	<punishment_message>$o$7D0>>> $7D0[$BBBWhitelist$7D0] $FFFYou're not whitelisted, that's why you will be $7D0{punished} $FFFnow!</punishment_message>	
 	
 	<!-- permission system where you can say to whom it's allowed to do something -->

@@ -1,6 +1,6 @@
 <?php
 
-Aseco::registerEvent('onSync', 'jwl_event_onSync');
+Aseco::registerEvent('onStartup', 'jwl_event_onStartup');
 Aseco::registerEvent('onPlayerConnect2', 'jwl_event_onPlayerConnect');
 
 // chat commands
@@ -23,7 +23,7 @@ function jwl_console($message) {
 	
 }
 
-function jwl_event_onSync($aseco) {
+function jwl_event_onStartup($aseco) {
 	global $jwl_config;
 	global $jwl_aseco;
 	
@@ -202,8 +202,53 @@ function chat_whitelist($aseco, $command) {
 			
 				if(jonni_checkPermission($aseco, $jwl_config['permissions'], $command['author'], 'list')) {
 					
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['list_start']), $command['author']->login);
 					
+					if($jwl_config['use_cache'] == 'true') {
+						
+						foreach($jwl_cache['whitelist'] as $login) {
+							
+							$message = str_replace(array('{login}'), array($login), $jwl_config['messages']['list_entry']);
+							$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($message), $command['author']->login);
+							
+						}							
+						
+					} else {
+						
+						switch($jwl_config['database']) {
+
+							case 'MySQL':
+							
+								$whitelist = jwl_query_getWhitelistEntries();
+								
+								foreach($whitelist as $login) {
+							
+									$message = str_replace(array('{login}'), array($login), $jwl_config['messages']['list_entry']);
+									$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($message), $command['author']->login);
+							
+								}	
+							
+							break;
+							
+							case 'XML':
+							
+								jwl_reloadConfig();
+								
+								foreach($jwl_config['whitelist'] as $login) {
+							
+									$message = str_replace(array('{login}'), array($login), $jwl_config['messages']['list_entry']);
+									$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($message), $command['author']->login);
+							
+								}				
+									
+							break;
+
+						}
+						
+					}
 					
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['list_end']), $command['author']->login);
+				
 				} else {
 					
 					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['announcement']), $command['author']->login);	
