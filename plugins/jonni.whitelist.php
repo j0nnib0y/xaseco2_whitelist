@@ -105,9 +105,9 @@ function jwl_event_onPlayerConnect($aseco, $player) {
 			
 		}
 		
-		if($jwl_config['chat_message'] != 'false') {
+		if($jwl_config['messages']['announcement'] != 'false') {
 
-			$message = str_replace(array('{name}', '{login}', '{punish}', '{punished}'), array($player->nickname, $player->login, $method, $method_past), $jwl_config['chat_message']);
+			$message = str_replace(array('{name}', '{login}', '{punish}', '{punished}'), array($player->nickname, $player->login, $method, $method_past), $jwl_config['messages']['announcement']);
 			$aseco->client->query('ChatSendServerMessage', $aseco->formatColors($message));
 
 		}
@@ -124,8 +124,79 @@ function jwl_event_onPlayerConnect($aseco, $player) {
 }
 
 function chat_whitelist($aseco, $command) {
+	global $jwl_config;
 	
-	// whitelist chat commands
+	if($command['params']) {
+		
+		$params = explode(' ', $command['params']);
+		
+		switch(strtolower($params[0])) {
+			
+			case 'add':
+			
+				if(jonni_checkPermission($aseco, $jwl_config['permissions'], $command['author'], 'add')) {
+					
+					if(isset($params[1])) {
+						
+						if(jwl_whitelistPlayer($params[1])) {
+						
+							$message = str_replace(array('{login}'), array($params[1]), $jwl_config['messages']['success_add']);
+							$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($message), $command['author']->login);
+						
+						} else {
+							
+							$message = str_replace(array('{login}'), array($params[1]), $jwl_config['messages']['fail_add']);
+							$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($message), $command['author']->login);
+							
+						}
+					
+					} else {
+						
+						$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['missing_parameters'] . 'player login'), $command['author']->login);
+						
+					}
+					
+				} else {
+					
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['no_permission']), $command['author']->login);
+					return;
+					
+				}
+			
+			break;
+			
+			case 'remove':
+			
+				if(jonni_checkPermission($aseco, $jwl_config['permissions'], $command['author'], 'remove')) {
+					
+					
+					
+				} else {
+					
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['announcement']), $command['author']->login);
+					return;
+					
+				}
+			
+			break;
+			
+			case 'list':
+			
+				if(jonni_checkPermission($aseco, $jwl_config['permissions'], $command['author'], 'list')) {
+					
+					
+					
+				} else {
+					
+					$aseco->client->query('ChatSendServerMessageToLogin', $aseco->formatColors($jwl_config['messages']['announcement']), $command['author']->login);	
+					return;
+					
+				}
+			
+			break;
+		}
+	
+	}
 	
 }
 
@@ -161,20 +232,19 @@ function jwl_refreshCache() {
 		case 'MySQL':
 		
 			$jwl_cache['whitelist'] = array_values(jwl_query_getWhitelistEntries());
-			print_r(jwl_query_getWhitelistEntries());
+			jwl_query_getWhitelistEntries();
+			
 		break;
 		
 		case 'XML':
 		
-			$jwl_cache['whitelist'] = array_values($jwl_config['whitelist']);
-		
+			$jwl_cache['whitelist'] = $jwl_config['whitelist']['player'];
 		
 		break;
 	
 	}
 	
 	jwl_console('>> Refreshed cache!');
-	#print_r($jwl_cache['whitelist']);
 	
 }
 
@@ -256,6 +326,8 @@ function jwl_banPlayer($player) {
 function jwl_checkPlayer($login) {
 	global $jwl_cache;
 	global $jwl_config;
+	
+	#print_r($jwl_cache);
 	
 	if($jwl_config['use_cache'] == 'true') {
 		
@@ -386,10 +458,54 @@ function jwl_query_getWhitelistEntries($login = false) {
 	
 }
 
+function jwl_query_addWhitelistEntry($login) {
+	
+	$sql = "INSERT INTO whitelist (login) VALUES ('" . mysql_real_escape_string($login) . "')";
+	
+	// if it won't be added because of duplicate, it will return false, and if it succeeded, it will return true!
+	return mysql_query($sql);
+
+}
 
 function jwl_whitelistPlayer($login) {
+	global $jwl_config;
+	global $jwl_cache;
 	
+	switch($jwl_config['database']) {
+		
+		case 'MySQL':
+			if(jwl_query_addWhitelistEntry($login)) {
+				return true;
+			} else {
+				return false;
+			}
+		break;
+		
+		case 'XML':
+			$file = simplexml_load_file('jonni.whitelist.xml');
+			
+			if(!in_array($login, (array) $file->whitelist->player)) {
+				$file->whitelist->addChild('player', $login);
+			} else {
+				return false;
+			}
+			
+			$dom = dom_import_simplexml($file)->ownerDocument;
+			$dom->formatOutput = true;
+			if(file_put_contents('jonni.whitelist.xml', $dom->saveXML($dom, LIBXML_NOEMPTYTAG))) {
+				return true;
+			} else {
+				return false;
+			}
+		break;
+		
+	}
 	
+	if($jwl_config['use_cache'] == 'true') {
+		
+		
+		
+	}
 	
 }
 
@@ -424,6 +540,51 @@ if(!function_exists('xml2array')) {
 			$out[$index] = ( is_object ( $node ) ) ? xml2array ( $node ) : $node;
 
 		return $out;
+	}
+	
+}
+
+if(!function_exists('jonni_checkPermission')) {
+
+	function jonni_checkPermission($aseco, $permissions, $player, $action) {
+		
+		if(isset($permissions[$action])) {
+			
+			switch($permissions[$action]) {
+				
+				case 'MasterAdmin':
+					if($aseco->isMasterAdmin($player)) {
+						return true;
+					}
+				break;
+				
+				case 'Admin':
+					if($aseco->isAdmin($player) or $aseco->isMasterAdmin($player)) {
+						return true;
+					}
+				break;
+				
+				case 'Operator':
+					if($aseco->isAnyAdmin($player)) {
+						return true;
+					}
+				break;
+				
+				default:
+					return true;
+				break;
+				
+			}
+			
+			// if someone hasn't got the right he needs, he isn't allowed to do
+			return false;
+		
+		} else {
+			
+			return false;
+			
+		}
+		
 	}
 	
 }

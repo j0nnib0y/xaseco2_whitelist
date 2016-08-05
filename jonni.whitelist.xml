@@ -2,18 +2,24 @@
 <whitelist_config>
 
 	<!-- the data source you want to use for whitelisted players | available: XML (this file), MySQL (xAseco db, autocreates new table "whitelist") -->
-	<database>MySQL</database> 	
+	<database>XML</database> 	
 	
 	<!-- enable caching the whitelisted players in RAM? -->
-	<!-- available: true, false -->
-	<!-- recommendation: false, but if you have a high frequented server, use true 
-		 (but please note that caching combined with XML reloads the config on every player connect - this isn't a good idea unless you modify the config from another file) -->
+	<!-- available: 		true, false -->
+	<!-- recommendation: 	false, but if you have a high frequented server, use true 
+							(but please note that caching combined with XML reloads the config on every player connect - this isn't a good idea unless you modify the config from another file) -->
 	<use_cache>true</use_cache>		
 	
-	<!-- should we show a message to all players and if yes, which content? -->
-	<!-- replaced shortcuts: {name}, {login}, {punish}, {punished} (past tense) -->
-	<!-- available: TEXT, false (no message) -->
-	<chat_message>{#server}>> {#admin}Player {#highlite}{name}$z$s{#admin} is not whitelisted and will be {#highlite}{punished}$z now!</chat_message>
+	<messages>
+		<!-- should we show a message to all players and if yes, which content? -->
+		<!-- replaced shortcuts: 	{name}, {login}, {punish}, {punished} (past tense) -->
+		<!-- available: 			TEXT, false (no message) -->
+		<announcement>{#server}>> {#admin}Player {#highlite}{name}$z$s{#admin} is not whitelisted and will be {#highlite}{punished}$z now!</announcement>
+		
+		<!-- you may not need to edit the following lines -->
+		<no_permission>$oYou don't have the permission to do that!</no_permission>
+		<missing_parameters>$oMissing parameters: </missing_parameters>
+	</messages>
 	
 	<!-- what should we do with non-whitelisted players? | available: forcespec (forces the player to spectator), kick, blacklist, ban (not recommended, IP ban) -->
 	<punishment_method>forcespec</punishment_method>
@@ -21,7 +27,16 @@
 	<!-- at the moment, no message is displayed unless you use forcespec, because a kick shows you the disconnect message with a black background directly -->
 	<punishment_message>$oYou're not whitelisted, that's why you will be {punished} now!</punishment_message>	
 	
-	<!-- if you uese XML as database, create a new <player>-node with the login of the player -->
+	<!-- permission system where you can say to whom it's allowed to do something -->
+	<!-- note: 		of course MasterAdmins and Admins can do something if you tick Operator, it's just the first who can do that -->
+	<!-- available:	User (normal player), Operator, Admin, MasterAdmin, NOTHING/UNKNOWN (= User) -->
+	<permissions>
+		<add>Operator</add>
+		<remove>Operator</remove>
+		<list>User</list>
+	</permissions>
+	
+	<!-- if you use XML as database, create a new <player>-node with the login of the player -->
 	<whitelist>
 		<player>jonniboy</player>
 	</whitelist>
